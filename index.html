@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Benjamin — A Jornada das Letras</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="game-card">
+      <div class="topbar">
+        <div class="brand"><span class="leaf">✦</span><div><strong>BENJAMIN</strong><small>A JORNADA DAS LETRAS</small></div></div>
+        <div class="status"><span class="status-dot"></span><span id="statusText">A floresta está acordando</span></div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="game" width="960" height="540" aria-label="Jogo de plataforma pelos cinco mundos"></canvas>
+        <div id="overlay" class="overlay visible">
+          <div class="title-mark">✦</div>
+          <p class="eyebrow">UMA AVENTURA PIXELADA</p>
+          <h1>Benjamin e a<br><span>Jornada das Letras</span></h1>
+          <p class="intro">Atravesse cinco mundos, cresça a cada cenário<br>e reúna todas as letras de BENJAMIN.</p>
+          <button id="startBtn">COMEÇAR A AVENTURA <span>→</span></button>
+          <p class="hint">Use <b>← →</b> para andar e <b>ESPAÇO</b> para pular</p>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <div class="letters" id="letters"></div>
+        <div class="controls"><span><b>← →</b> mover</span><span><b>ESPAÇO</b> pular</span><span><b>R</b> reiniciar</span></div>
+      </div>
+    </section>
+    <p class="footer-note">Cinco idades, cinco mundos e oito letras ✦</p>
+  </main>
+  <script src="journey.js"></script>
+  <script src="world-art.js"></script>
+</body>
+</html>
