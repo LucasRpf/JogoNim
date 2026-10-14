@@ -10,6 +10,8 @@ const heroSprites=spritePaths.map(src=>{const image=new Image();image.src=src;re
 const statusText=document.getElementById('statusText'),startButton=document.getElementById('startBtn');
 
 let keys={},running=false,won=false,frame=0,cameraX=0,player,items,obstacles;
+// Estado dedicado aos controles de toque, independente do teclado físico.
+let touchLeft=false,touchRight=false,touchJump=false;
 let sceneReady=false,growthTimer=0,lastRegion=0;
 
 startButton.disabled=true;
@@ -32,7 +34,7 @@ const letterLayout=[
 
 function reset(){
   player={x:72,y:ground-ageHeights[0],w:28,h:ageHeights[0],vx:0,vy:0,onGround:true,facing:1,age:1};
-  cameraX=0;frame=0;won=false;growthTimer=0;lastRegion=0;keys={};
+  cameraX=0;frame=0;won=false;growthTimer=0;lastRegion=0;keys={};touchLeft=false;touchRight=false;touchJump=false;
   obstacles=obstacleLayout.map(o=>({...o}));
   items=letterLayout.map(([l,x,y,region])=>({l,x,y,region,got:false}));
   updateLetters();
@@ -67,9 +69,9 @@ function completeGame(){
 function step(){
   if(!running)return;
   frame++;const p=player;
-  p.vx=((keys.ArrowRight||keys.d)?3.75:0)-((keys.ArrowLeft||keys.a)?3.75:0);
+  p.vx=((keys.ArrowRight||keys.d||touchRight)?3.75:0)-((keys.ArrowLeft||keys.a||touchLeft)?3.75:0);
   if(p.vx)p.facing=Math.sign(p.vx);
-  if((keys[' ']||keys.ArrowUp||keys.w)&&p.onGround){p.vy=-10.8;p.onGround=false;}
+  if((keys[' ']||keys.ArrowUp||keys.w||touchJump)&&p.onGround){p.vy=-10.8;p.onGround=false;}
 
   p.x+=p.vx;
   for(const o of obstacles)if(collide(p,o))p.x=p.vx>0?o.x-p.w:p.vx<0?o.x+o.w:p.x;
@@ -156,24 +158,38 @@ window.addEventListener('keydown',event=>{
 window.addEventListener('keyup',event=>{keys[event.key.length===1?event.key.toLowerCase():event.key]=false;});
 window.addEventListener('blur',()=>{keys={};});
 
-// Controles por toque: mantêm a tecla virtual pressionada enquanto o dedo estiver no botão.
+// Controles por toque: mantêm o movimento ativo enquanto o dedo estiver pressionando.
 const touchButtons=document.querySelectorAll('.touch-btn');
-function releaseTouchButton(button){
+function setTouchButton(button, pressed){
   const key=button.dataset.key;
-  if(key)keys[key]=false;
-  button.classList.remove('pressed');
+  if(key==='ArrowLeft')touchLeft=pressed;
+  else if(key==='ArrowRight')touchRight=pressed;
+  else if(key===' ')touchJump=pressed;
+  button.classList.toggle('pressed',pressed);
 }
 touchButtons.forEach(button=>{
   button.addEventListener('pointerdown',event=>{
     event.preventDefault();
     if(!running)return;
-    const key=button.dataset.key;
-    if(key)keys[key]=true;
-    button.classList.add('pressed');
-    try{button.setPointerCapture(event.pointerId);}catch(_){}
+    setTouchButton(button,true);
   });
-  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>button.addEventListener(type,()=>releaseTouchButton(button)));
+  // Liberar no window também evita que o botão fique preso se o dedo sair dele.
+  const release=()=>setTouchButton(button,false);
+  button.addEventListener('pointerup',release);
+  button.addEventListener('pointercancel',release);
+  button.addEventListener('lostpointercapture',release);
+  window.addEventListener('pointerup',release);
+  window.addEventListener('pointercancel',release);
   button.addEventListener('contextmenu',event=>event.preventDefault());
+  // Fallback para navegadores móveis que não disparem Pointer Events corretamente.
+  button.addEventListener('touchstart',event=>{
+    event.preventDefault();
+    if(running)setTouchButton(button,true);
+  },{passive:false});
+  button.addEventListener('touchend',event=>{
+    event.preventDefault();release();
+  },{passive:false});
+  button.addEventListener('touchcancel',release);
 });
 
 startButton.onclick=start;reset();

@@ -9,11 +9,11 @@ body:before{content:"";position:fixed;inset:0;opacity:.18;pointer-events:none;ba
 
 
 /* Controles virtuais para celulares e tablets */
-.touch-controls{display:none;position:absolute;z-index:3;left:0;right:0;bottom:12px;align-items:flex-end;justify-content:space-between;padding:0 14px;pointer-events:none;touch-action:none}
-.move-buttons{display:flex;gap:10px;pointer-events:auto}
-.touch-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;min-width:56px;min-height:54px;padding:10px;background:rgba(36,32,58,.78);border:2px solid #fff0c8;color:#fff4d6;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.35);font-family:'DM Mono',monospace;font-size:20px;font-weight:bold;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.touch-controls{display:none;position:absolute;z-index:3;left:0;right:0;bottom:8px;align-items:flex-end;justify-content:space-between;padding:0 10px;pointer-events:none;touch-action:none}
+.move-buttons{display:flex;gap:6px;pointer-events:auto}
+.touch-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;padding:7px;background:rgba(36,32,58,.78);border:2px solid #fff0c8;color:#fff4d6;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.35);font-family:'DM Mono',monospace;font-size:16px;font-weight:bold;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 .touch-btn.pressed{background:rgba(221,118,93,.96);transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
-.jump-btn{min-width:76px;min-height:64px;border-radius:50%;font-size:11px;background:rgba(132,198,155,.9)}
+.jump-btn{min-width:54px;min-height:48px;border-radius:50%;font-size:9px;background:rgba(132,198,155,.9)}
 .mobile-hint{display:none;color:#fac76f}
 @media(max-width:700px){
   .touch-controls{display:flex}
@@ -22,4 +22,4 @@ body:before{content:"";position:fixed;inset:0;opacity:.18;pointer-events:none;ba
   .mobile-hint{display:inline}
   .bottom-bar{padding-top:12px}
 }
-@media(max-width:380px){.touch-controls{padding:0 8px;bottom:8px}.touch-btn{min-width:48px;min-height:48px}.jump-btn{min-width:66px;min-height:58px}}
+@media(max-width:380px){.touch-controls{padding:0 6px;bottom:6px}.touch-btn{min-width:36px;min-height:36px;font-size:14px}.jump-btn{min-width:48px;min-height:42px;font-size:8px}}
