@@ -155,6 +155,27 @@ window.addEventListener('keydown',event=>{
 });
 window.addEventListener('keyup',event=>{keys[event.key.length===1?event.key.toLowerCase():event.key]=false;});
 window.addEventListener('blur',()=>{keys={};});
+
+// Controles por toque: mantêm a tecla virtual pressionada enquanto o dedo estiver no botão.
+const touchButtons=document.querySelectorAll('.touch-btn');
+function releaseTouchButton(button){
+  const key=button.dataset.key;
+  if(key)keys[key]=false;
+  button.classList.remove('pressed');
+}
+touchButtons.forEach(button=>{
+  button.addEventListener('pointerdown',event=>{
+    event.preventDefault();
+    if(!running)return;
+    const key=button.dataset.key;
+    if(key)keys[key]=true;
+    button.classList.add('pressed');
+    try{button.setPointerCapture(event.pointerId);}catch(_){}
+  });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>button.addEventListener(type,()=>releaseTouchButton(button)));
+  button.addEventListener('contextmenu',event=>event.preventDefault());
+});
+
 startButton.onclick=start;reset();
 
 let previous=0,accumulator=0;

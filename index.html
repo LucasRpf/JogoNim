@@ -15,13 +15,20 @@
       </div>
       <div class="canvas-wrap">
         <canvas id="game" width="960" height="540" aria-label="Jogo de plataforma pelos cinco mundos"></canvas>
+        <div class="touch-controls" id="touchControls" aria-label="Controles de toque">
+          <div class="move-buttons">
+            <button type="button" class="touch-btn" data-key="ArrowLeft" aria-label="Mover para a esquerda">◀</button>
+            <button type="button" class="touch-btn" data-key="ArrowRight" aria-label="Mover para a direita">▶</button>
+          </div>
+          <button type="button" class="touch-btn jump-btn" data-key=" " aria-label="Pular">PULAR</button>
+        </div>
         <div id="overlay" class="overlay visible">
           <div class="title-mark">✦</div>
           <p class="eyebrow">UMA AVENTURA PIXELADA</p>
           <h1>Benjamin e a<br><span>Jornada das Letras</span></h1>
           <p class="intro">Atravesse cinco mundos, cresça a cada cenário<br>e reúna todas as letras de BENJAMIN.</p>
           <button id="startBtn">COMEÇAR A AVENTURA <span>→</span></button>
-          <p class="hint">Use <b>← →</b> para andar e <b>ESPAÇO</b> para pular</p>
+          <p class="hint">Use <b>← →</b> para andar e <b>ESPAÇO</b> para pular<br><span class="mobile-hint">No celular, use os botões na tela</span></p>
         </div>
       </div>
       <div class="bottom-bar">
