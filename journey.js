@@ -13,6 +13,7 @@ let keys={},running=false,won=false,frame=0,cameraX=0,player,items,obstacles;
 // Estado dedicado aos controles de toque, independente do teclado físico.
 let touchLeft=false,touchRight=false,touchJump=false;
 let sceneReady=false,growthTimer=0,lastRegion=0,retryRegion=0,retryPending=false,invulnerable=0;
+let celebrationStart=0;
 
 startButton.disabled=true;
 statusText.textContent='Preparando os cinco mundos…';
@@ -56,7 +57,7 @@ function growTo(region){
   if(region===lastRegion)return;
   const oldBottom=player.y+player.h;
   player.age=region+1;player.h=ageHeights[region];player.y=oldBottom-player.h;
-  lastRegion=region;growthTimer=150;
+  lastRegion=region;growthTimer=150;window.gameAudio?.grow();
 }
 
 function updateLetters(){
@@ -88,6 +89,7 @@ function loseLife(region){
 }
 
 function completeGame(){
+  celebrationStart=performance.now();window.gameAudio?.victory();
   won=true;running=false;
   const overlay=document.getElementById('overlay');
   overlay.querySelector('.eyebrow').textContent='JORNADA COMPLETA';
@@ -102,7 +104,7 @@ function step(){
   frame++;const p=player;
   p.vx=((keys.ArrowRight||keys.d||touchRight)?3.75:0)-((keys.ArrowLeft||keys.a||touchLeft)?3.75:0);
   if(p.vx)p.facing=Math.sign(p.vx);
-  if((keys[' ']||keys.ArrowUp||keys.w||touchJump)&&p.onGround){p.vy=-10.8;p.onGround=false;}
+  if((keys[' ']||keys.ArrowUp||keys.w||touchJump)&&p.onGround){p.vy=-10.8;p.onGround=false;window.gameAudio?.jump();}
 
   p.x+=p.vx;
   for(const o of obstacles)if(collide(p,o))p.x=p.vx>0?o.x-p.w:p.vx<0?o.x+o.w:p.x;
@@ -117,19 +119,19 @@ function step(){
   if(p.y+p.h>=ground){p.y=ground-p.h;p.vy=0;p.onGround=true;}
   if(p.y<0){p.y=0;p.vy=0;}
 
-  const region=currentRegion();growTo(region);
+  const region=currentRegion();growTo(region);window.gameAudio?.region(region);
   if(invulnerable>0)invulnerable--;
   for(const h of hazards){
     if(h.region!==region)continue;
     const sway=h.kind==='crab'?Math.sin(frame*.045+(h.phase||0))*23:
                h.kind==='car'?Math.sin(frame*.06+(h.phase||0))*27:0;
     const hitbox={x:h.x+sway+8,y:h.y+7,w:h.w-16,h:h.h-7};
-    if(collide(p,hitbox)){loseLife(region);return;}
+    if(collide(p,hitbox)){window.gameAudio?.hurt();loseLife(region);return;}
   }
   cameraX=Math.max(0,Math.min(worldW-W,p.x-W*.35));
 
   for(const it of items)if(!it.got&&collide(p,{x:it.x-4,y:it.y-5,w:36,h:43})){
-    it.got=true;updateLetters();
+    it.got=true;updateLetters();window.gameAudio?.letter();
     if(items.every(item=>item.got))completeGame();
   }
   if(growthTimer>0)growthTimer--;
@@ -210,6 +212,29 @@ function drawHazard(h){
   ctx.restore();
 }
 
+function drawCelebration(){
+  if(!won)return;
+  const t=(performance.now()-celebrationStart)/1000;
+  ctx.save();
+  for(let i=0;i<65;i++){
+    const x=(i*173+Math.sin(t*1.4+i)*18)%W;
+    const y=((i*97+t*(38+i%4*13))%(H+40))-20;
+    rect(x,y,5+i%3,8+i%4,['#ffda6c','#e77e9d','#86dcca','#b9a3ed'][i%4]);
+  }
+  for(let i=0;i<6;i++){
+    const x=85+i*155+Math.sin(t+i)*12,y=105+Math.cos(t*.9+i)*14;
+    ctx.fillStyle=['#f09a9e','#f5c76c','#8ddac5'][i%3];
+    ctx.beginPath();ctx.ellipse(x,y,17,23,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff0cb';ctx.beginPath();ctx.moveTo(x,y+23);ctx.lineTo(x-4,y+68);ctx.stroke();
+  }
+  rect(410,385,140,50,'#ef9faf');rect(402,378,156,13,'#fff0d7');
+  rect(429,350,102,28,'#e9c28c');rect(424,343,112,10,'#fff0d7');
+  rect(476,315,9,28,'#8cd9cb');
+  ctx.fillStyle='#ffce69';ctx.beginPath();ctx.ellipse(480,309+Math.sin(t*8)*2,5,9,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#51354e';ctx.textAlign='center';ctx.font='bold 26px monospace';ctx.fillText('6',480,374);
+  ctx.restore();
+}
+
 function draw(){
   rect(0,0,W,H,'#17352f');
   if(!window.worldArt)return;
@@ -219,14 +244,14 @@ function draw(){
   items.forEach((it,i)=>{if(!it.got)drawLetter(it,i);});
   hazards.forEach(drawHazard);
   ctx.fillStyle='rgba(18,28,22,.24)';ctx.beginPath();ctx.ellipse(player.x+player.w/2,ground+2,20,4,0,0,Math.PI*2);ctx.fill();
-  if(invulnerable===0||Math.floor(frame/5)%2===0)drawPlayer();ctx.restore();drawGrowthBanner();
+  if(invulnerable===0||Math.floor(frame/5)%2===0)drawPlayer();ctx.restore();drawGrowthBanner();drawCelebration();
 }
 
 function start(){
   if(!sceneReady)return;
   if(retryPending){respawnInRegion(retryRegion);retryPending=false;}
   else reset();
-  running=true;
+  running=true;window.gameAudio?.start();
   const overlay=document.getElementById('overlay');
   overlay.classList.remove('visible');
 }
