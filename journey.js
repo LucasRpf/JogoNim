@@ -60,8 +60,8 @@ function completeGame(){
   won=true;running=false;
   const overlay=document.getElementById('overlay');
   overlay.querySelector('.eyebrow').textContent='JORNADA COMPLETA';
-  overlay.querySelector('h1').innerHTML='Você formou<br><span>BENJAMIN!</span>';
-  overlay.querySelector('.intro').innerHTML='Cinco idades, cinco mundos<br>e uma grande aventura!';
+  overlay.querySelector('h1').innerHTML='Feliz aniversário<br><span>Benjamin - 6 anos -</span>';
+  overlay.querySelector('.intro').innerHTML='Você reuniu todas as letras!<br>Que sua nova aventura seja incrível!';
   startButton.innerHTML='JOGAR DE NOVO <span>→</span>';
   overlay.classList.add('visible');
 }
@@ -89,7 +89,7 @@ function step(){
   const region=currentRegion();growTo(region);
   cameraX=Math.max(0,Math.min(worldW-W,p.x-W*.35));
 
-  for(const it of items)if(!it.got&&collide(p,{x:it.x,y:it.y,w:28,h:34})){
+  for(const it of items)if(!it.got&&collide(p,{x:it.x-4,y:it.y-5,w:36,h:43})){
     it.got=true;updateLetters();
     if(items.every(item=>item.got))completeGame();
   }
@@ -117,9 +117,13 @@ function drawPlayer(){
 
 function drawLetter(it,index){
   const y=it.y+Math.sin(performance.now()/250+index)*4;
-  ctx.fillStyle='rgba(255,222,108,.17)';ctx.beginPath();ctx.arc(it.x+14,y+16,25,0,Math.PI*2);ctx.fill();
-  rect(it.x-3,y-3,34,38,'#4e3827');rect(it.x,y,28,32,'#f0ba55');rect(it.x+3,y+3,22,4,'#ffeaa5');
-  ctx.font='bold 22px monospace';ctx.textAlign='center';ctx.fillStyle='#493526';ctx.fillText(it.l,it.x+14,y+24);
+  const x=it.x-4;
+  ctx.fillStyle='rgba(255,222,108,.2)';ctx.beginPath();ctx.arc(x+18,y+19,31,0,Math.PI*2);ctx.fill();
+  rect(x-3,y-5,42,47,'#4e3827');
+  rect(x,y-2,36,41,'#f0ba55');
+  rect(x+3,y+1,30,5,'#ffeaa5');
+  ctx.font='bold 29px monospace';ctx.textAlign='center';ctx.fillStyle='#493526';
+  ctx.fillText(it.l,x+18,y+30);
 }
 
 function drawGrowthBanner(){
