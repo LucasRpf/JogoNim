@@ -79,7 +79,7 @@ function respawnInRegion(region){
 
 function loseLife(region){
   if(!running||invulnerable>0)return;
-  running=false;retryPending=true;retryRegion=region;
+  running=false;window.gameAudio?.pause();retryPending=true;retryRegion=region;
   const overlay=document.getElementById('overlay');
   overlay.querySelector('.eyebrow').textContent='TENTE MAIS UMA VEZ';
   overlay.querySelector('h1').innerHTML='OPS, BENJAMIN!<br><span>Não desista!</span>';
