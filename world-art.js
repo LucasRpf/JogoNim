@@ -45,6 +45,25 @@
     for(let i=0;i<30;i++){const x=regionStart+(i*43+t*15)%REGION_W,y=40+(i*67+t*20)%360;box(x,y,2+i%2,2+i%2,'rgba(255,255,255,.72)');}
   }
 
+  function fish(x,y,t,index){
+    const lift=Math.max(0,Math.sin(t*1.7+index))*22;
+    box(x,y-lift,16,8,'#7bd9d4');box(x-5,y-lift-3,6,14,'#4e9dbb');
+    box(x+11,y-lift+2,2,2,'#263d51');
+  }
+  function penguin(x,y,t,index){
+    const bob=Math.sin(t*2+index)*3;
+    box(x,y+bob,20,32,'#28384e');box(x+4,y+6+bob,12,23,'#e6f5ee');
+    box(x+4,y+5+bob,3,3,'#fff');box(x+14,y+5+bob,3,3,'#fff');
+    box(x+8,y+11+bob,5,4,'#efb75d');
+  }
+  function leaves(base,t){
+    for(let i=0;i<8;i++){
+      const x=base+(i*117+Math.sin(t*.5+i)*26)%REGION_W;
+      const y=(i*61+t*(12+i%3*4))%370+30;
+      box(x,y,5,4,i%2?'#c6b95d':'#7db36e');
+    }
+  }
+
   function cityBird(x,y,t,index){bird(x+Math.sin(t*.6+index)*30,y+Math.sin(t*1.4+index)*8,t,index,'#5c6670');}
 
   window.worldArt={
@@ -58,18 +77,23 @@
       const t=performance.now()/1000,base=region*REGION_W;
       if(region===0){
         bird(base+270+Math.sin(t*.5)*60,185+Math.sin(t*1.6)*10,t,0);
+        leaves(base,t);
         for(let i=0;i<5;i++)butterfly(base+120+i*150+Math.sin(t+i)*18,350+Math.cos(t*1.3+i)*22,t,i,i%2?'#c796dd':'#e89b42');
       }else if(region===1){
         bird(base+300+Math.sin(t*.35)*90,155+Math.sin(t)*12,t,1,'#272c30');
         bird(base+700+Math.sin(t*.45)*70,205+Math.cos(t)*12,t,2,'#7c3e28');
+        bird(base+520+Math.sin(t*.35)*40,125,t,8,'#d7a653');
       }else if(region===2){
         bird(base+260+Math.sin(t*.5)*85,145+Math.sin(t*1.4)*12,t,3,'#edf3f1');
         bird(base+690+Math.sin(t*.4)*70,185+Math.cos(t*1.2)*10,t,4,'#edf3f1');
         crab(base+120,t,0);crab(base+850,t,2);
+        fish(base+410,414,t,0);fish(base+600,423,t,2);
       }else if(region===3){
         snow(base,t);bird(base+500+Math.sin(t*.25)*130,150,t,5,'#f4f7f6');
+        penguin(base+210,417,t,0);penguin(base+670,417,t,1);
       }else{
         cityBird(base+250,170,t,6);cityBird(base+650,210,t,7);
+        cityBird(base+450,130,t,9);
       }
     }
   };
