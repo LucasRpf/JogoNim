@@ -37,6 +37,7 @@
   }
   toggle.addEventListener('click',()=>setEnabled(!enabled));
   window.gameAudio={
+    pause(){playing=false;stopLoop();},
     start(){playing=true;regionIndex=0;beat=0;audio();playLoop();},
     region(i){if(i!==regionIndex){regionIndex=i;beat=0;playLoop();}},
     jump(){tone(440,.09,.045,'square');},
