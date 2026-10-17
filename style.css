@@ -59,3 +59,12 @@ body:before{content:"";position:fixed;inset:0;opacity:.18;pointer-events:none;ba
   .intro{line-height:1.4}
   .overlay button{padding:10px 12px}
 }
+
+/* Correção: a barra do navegador móvel reduz a área realmente visível. */
+@media (pointer:coarse) and (orientation:landscape){
+  html,body{height:var(--visible-game-height,100dvh);min-height:0;overflow:hidden}
+  body{position:fixed;inset:0 auto auto 0;width:100%;height:var(--visible-game-height,100dvh)}
+  .shell,.game-card,.canvas-wrap{height:var(--visible-game-height,100dvh);min-height:0}
+  .canvas-wrap canvas{width:min(100vw,calc(var(--visible-game-height,100dvh) * 16 / 9));height:auto;max-height:var(--visible-game-height,100dvh);flex:none}
+  .touch-controls{bottom:0;padding-bottom:max(12px,env(safe-area-inset-bottom));}
+}
