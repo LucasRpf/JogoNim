@@ -203,3 +203,15 @@ function tick(now){
 }
 requestAnimationFrame(tick);
 
+
+
+// Mede a área visível do navegador (sem a barra de endereço) para centralizar
+// o canvas e manter os controles inteiros dentro da tela em modo paisagem.
+function updateVisibleGameHeight(){
+  const height=window.visualViewport?window.visualViewport.height:window.innerHeight;
+  document.documentElement.style.setProperty('--visible-game-height',Math.round(height)+'px');
+}
+updateVisibleGameHeight();
+window.addEventListener('resize',updateVisibleGameHeight);
+window.addEventListener('orientationchange',updateVisibleGameHeight);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',updateVisibleGameHeight);
