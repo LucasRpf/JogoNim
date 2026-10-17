@@ -156,7 +156,7 @@ window.addEventListener('keydown',event=>{
   if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key))event.preventDefault();
 });
 window.addEventListener('keyup',event=>{keys[event.key.length===1?event.key.toLowerCase():event.key]=false;});
-window.addEventListener('blur',()=>{keys={};});
+window.addEventListener('blur',()=>{keys={};touchLeft=false;touchRight=false;touchJump=false;document.querySelectorAll('.touch-btn').forEach(button=>button.classList.remove('pressed'));});
 
 // Controles por toque: mantêm o movimento ativo enquanto o dedo estiver pressionando.
 const touchButtons=document.querySelectorAll('.touch-btn');
@@ -171,6 +171,7 @@ touchButtons.forEach(button=>{
   button.addEventListener('pointerdown',event=>{
     event.preventDefault();
     if(!running)return;
+    if(button.setPointerCapture)button.setPointerCapture(event.pointerId);
     setTouchButton(button,true);
   });
   // Liberar no window também evita que o botão fique preso se o dedo sair dele.
