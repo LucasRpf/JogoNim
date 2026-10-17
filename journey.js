@@ -12,7 +12,7 @@ const statusText=document.getElementById('statusText'),startButton=document.getE
 let keys={},running=false,won=false,frame=0,cameraX=0,player,items,obstacles;
 // Estado dedicado aos controles de toque, independente do teclado físico.
 let touchLeft=false,touchRight=false,touchJump=false;
-let sceneReady=false,growthTimer=0,lastRegion=0;
+let sceneReady=false,growthTimer=0,lastRegion=0,retryRegion=0,retryPending=false,invulnerable=0;
 
 startButton.disabled=true;
 statusText.textContent='Preparando os cinco mundos…';
@@ -24,6 +24,13 @@ for(let region=0;region<REGION_COUNT;region++){
   obstacleLayout.push({x:base+682,y:414,w:92,h:41,type:'round'});
 }
 
+// Obstáculos fatais grandes, com silhuetas e cores diferentes por mundo.
+const hazardLayout=Array.from({length:REGION_COUNT},(_,region)=>[
+  {x:region*REGION_W+535,y:ground-52,w:57,h:52,region,kind:['thorns','cactus','crab','ice','car'][region]},
+  {x:region*REGION_W+845,y:ground-50,w:58,h:50,region,kind:['thorns','cactus','crab','ice','car'][region],phase:1.8}
+]).flat();
+const hazards=hazardLayout.map(h=>({...h}));
+
 const letterLayout=[
   ['B',190,348,0],['E',790,330,0],
   ['N',REGION_W+190,342,1],['J',REGION_W+790,326,1],
@@ -34,7 +41,7 @@ const letterLayout=[
 
 function reset(){
   player={x:72,y:ground-ageHeights[0],w:28,h:ageHeights[0],vx:0,vy:0,onGround:true,facing:1,age:1};
-  cameraX=0;frame=0;won=false;growthTimer=0;lastRegion=0;keys={};touchLeft=false;touchRight=false;touchJump=false;
+  cameraX=0;frame=0;won=false;growthTimer=0;lastRegion=0;retryRegion=0;retryPending=false;invulnerable=0;keys={};touchLeft=false;touchRight=false;touchJump=false;
   obstacles=obstacleLayout.map(o=>({...o}));
   items=letterLayout.map(([l,x,y,region])=>({l,x,y,region,got:false}));
   updateLetters();
@@ -54,6 +61,30 @@ function growTo(region){
 
 function updateLetters(){
   document.getElementById('letters').innerHTML=items.map(it=>`<span class="letter ${it.got?'got':''}">${it.l}</span>`).join('');
+}
+
+function respawnInRegion(region){
+  // Mantém as letras dos mundos anteriores, mas permite recolher as deste mundo.
+  items.forEach(it=>{if(it.region===region)it.got=false;});
+  updateLetters();
+  player.x=region*REGION_W+55;
+  player.h=ageHeights[region];player.y=ground-player.h;
+  player.age=region+1;player.vx=0;player.vy=0;player.onGround=true;
+  lastRegion=region;growthTimer=0;cameraX=Math.max(0,Math.min(worldW-W,player.x-W*.35));
+  keys={};touchLeft=false;touchRight=false;touchJump=false;
+  document.querySelectorAll('.touch-btn').forEach(button=>button.classList.remove('pressed'));
+  invulnerable=60;
+}
+
+function loseLife(region){
+  if(!running||invulnerable>0)return;
+  running=false;retryPending=true;retryRegion=region;
+  const overlay=document.getElementById('overlay');
+  overlay.querySelector('.eyebrow').textContent='TENTE MAIS UMA VEZ';
+  overlay.querySelector('h1').innerHTML='OPS, BENJAMIN!<br><span>Não desista!</span>';
+  overlay.querySelector('.intro').textContent=`Você continua em ${regionNames[region]}. As letras dos mundos anteriores estão salvas!`;
+  startButton.innerHTML='TENTAR NOVAMENTE <span>↻</span>';
+  overlay.classList.add('visible');
 }
 
 function completeGame(){
@@ -87,6 +118,14 @@ function step(){
   if(p.y<0){p.y=0;p.vy=0;}
 
   const region=currentRegion();growTo(region);
+  if(invulnerable>0)invulnerable--;
+  for(const h of hazards){
+    if(h.region!==region)continue;
+    const sway=h.kind==='crab'?Math.sin(frame*.045+(h.phase||0))*23:
+               h.kind==='car'?Math.sin(frame*.06+(h.phase||0))*27:0;
+    const hitbox={x:h.x+sway+8,y:h.y+7,w:h.w-16,h:h.h-7};
+    if(collide(p,hitbox)){loseLife(region);return;}
+  }
   cameraX=Math.max(0,Math.min(worldW-W,p.x-W*.35));
 
   for(const it of items)if(!it.got&&collide(p,{x:it.x-4,y:it.y-5,w:36,h:43})){
@@ -136,6 +175,41 @@ function drawGrowthBanner(){
   ctx.fillStyle='#aee0c0';ctx.font='11px monospace';ctx.fillText(regionNames[player.age-1].toUpperCase(),W/2,82);ctx.restore();
 }
 
+function drawHazard(h){
+  const sway=h.kind==='crab'?Math.sin(frame*.045+(h.phase||0))*23:
+             h.kind==='car'?Math.sin(frame*.06+(h.phase||0))*27:0;
+  const x=Math.round(h.x+sway),y=h.y;
+  ctx.save();
+  // Contorno escuro reforça a leitura dos perigos mesmo em telas pequenas.
+  if(h.kind==='thorns'||h.kind==='ice'){
+    const icy=h.kind==='ice';
+    rect(x,y+32,h.w,20,icy?'#34577e':'#563b42');
+    for(let i=0;i<3;i++){
+      const bx=x+i*19;
+      ctx.fillStyle=icy?'#b8f6ff':'#ed7a6d';
+      ctx.strokeStyle='#28384c';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(bx,y+36);ctx.lineTo(bx+10,y-3+(i%2)*7);ctx.lineTo(bx+20,y+36);ctx.closePath();ctx.fill();ctx.stroke();
+    }
+  }else if(h.kind==='cactus'){
+    rect(x+19,y+3,23,49,'#244d3b');rect(x+23,y+7,15,43,'#60c978');
+    rect(x+4,y+16,20,12,'#244d3b');rect(x+8,y+12,12,14,'#60c978');
+    rect(x+37,y+22,19,12,'#244d3b');rect(x+41,y+16,11,15,'#60c978');
+    for(let i=0;i<4;i++)rect(x+26+(i%2)*7,y+11+i*10,3,4,'#e8ef9e');
+  }else if(h.kind==='crab'){
+    rect(x+8,y+20,43,27,'#773e49');rect(x+12,y+16,35,27,'#ed775c');
+    rect(x+15,y+8,9,13,'#773e49');rect(x+35,y+8,9,13,'#773e49');
+    rect(x+18,y+11,4,5,'#fff8dd');rect(x+37,y+11,4,5,'#fff8dd');
+    rect(x,y+21,13,15,'#ed775c');rect(x+46,y+21,12,15,'#ed775c');
+    rect(x+4,y+44,12,6,'#773e49');rect(x+43,y+44,12,6,'#773e49');
+  }else if(h.kind==='car'){
+    rect(x+2,y+19,54,25,'#333650');rect(x+6,y+14,46,26,'#f3a653');
+    rect(x+16,y+4,29,16,'#333650');rect(x+20,y+7,21,12,'#b6e6e3');
+    rect(x+10,y+38,13,13,'#24203a');rect(x+38,y+38,13,13,'#24203a');
+    rect(x+13,y+41,7,7,'#c7c4a7');rect(x+41,y+41,7,7,'#c7c4a7');
+  }
+  ctx.restore();
+}
+
 function draw(){
   rect(0,0,W,H,'#17352f');
   if(!window.worldArt)return;
@@ -143,13 +217,16 @@ function draw(){
   ctx.save();ctx.translate(-Math.round(cameraX),0);
   window.worldArt.animate(currentRegion());
   items.forEach((it,i)=>{if(!it.got)drawLetter(it,i);});
+  hazards.forEach(drawHazard);
   ctx.fillStyle='rgba(18,28,22,.24)';ctx.beginPath();ctx.ellipse(player.x+player.w/2,ground+2,20,4,0,0,Math.PI*2);ctx.fill();
-  drawPlayer();ctx.restore();drawGrowthBanner();
+  if(invulnerable===0||Math.floor(frame/5)%2===0)drawPlayer();ctx.restore();drawGrowthBanner();
 }
 
 function start(){
   if(!sceneReady)return;
-  reset();running=true;
+  if(retryPending){respawnInRegion(retryRegion);retryPending=false;}
+  else reset();
+  running=true;
   const overlay=document.getElementById('overlay');
   overlay.classList.remove('visible');
 }
